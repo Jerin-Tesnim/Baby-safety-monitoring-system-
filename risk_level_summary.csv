@@ -1,0 +1,5 @@
+risk_label,sample_count,percentage
+No_Baby,3110,23.81
+Low_Risk,1865,14.28
+Medium_Risk,4919,37.66
+High_Risk,3167,24.25
