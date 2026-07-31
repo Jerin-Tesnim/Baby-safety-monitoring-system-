@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+    <title>Live Multimodal Infant Risk Dashboard</title>
+
+    <style>
+        :root {
+            --background: #08111f;
+            --panel: #101c2d;
+            --panel-light: #15243a;
+            --text: #f4f7fb;
+            --muted: #9fb0c7;
+            --border: #263a55;
+            --good: #25c281;
+            --warning: #f0ad4e;
+            --danger: #ef5b5b;
+            --accent: #4ea1ff;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--background);
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        header {
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--border);
+            background: #0b1626;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 23px;
+        }
+
+        header p {
+            margin: 7px 0 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .page {
+            max-width: 1500px;
+            margin: auto;
+            padding: 18px;
+        }
+
+        .status-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .status-pill {
+            border: 1px solid var(--border);
+            background: var(--panel);
+            border-radius: 999px;
+            padding: 8px 13px;
+            font-size: 13px;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.8fr);
+            gap: 16px;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .panel-title {
+            padding: 13px 15px;
+            font-size: 16px;
+            font-weight: bold;
+            border-bottom: 1px solid var(--border);
+            background: var(--panel-light);
+        }
+
+        .panel-body {
+            padding: 15px;
+        }
+
+        .video-wrapper {
+            width: 100%;
+            background: #000;
+            line-height: 0;
+        }
+
+        #live-video {
+            display: block;
+            width: 100%;
+            min-height: 280px;
+            object-fit: contain;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .card {
+            padding: 13px;
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            background: var(--panel-light);
+        }
+
+        .label {
+            color: var(--muted);
+            font-size: 12px;
+            margin-bottom: 6px;
+        }
+
+        .value {
+            font-size: 18px;
+            font-weight: bold;
+            overflow-wrap: anywhere;
+        }
+
+        .small-value {
+            font-size: 14px;
+            font-weight: normal;
+        }
+
+        .risk-box {
+            text-align: center;
+            padding: 18px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--panel-light);
+            margin-bottom: 13px;
+        }
+
+        #risk-class {
+            font-size: 31px;
+            font-weight: bold;
+        }
+
+        #risk-confidence {
+            margin-top: 7px;
+            color: var(--muted);
+        }
+
+        .probability-row,
+        .shap-row {
+            margin-bottom: 12px;
+        }
+
+        .row-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 5px;
+            font-size: 13px;
+        }
+
+        .bar {
+            height: 9px;
+            background: #07101d;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            width: 0;
+            background: var(--accent);
+            border-radius: inherit;
+            transition: width 0.35s ease;
+        }
+
+        .shap-positive {
+            background: var(--danger);
+        }
+
+        .shap-negative {
+            background: var(--good);
+        }
+
+        .explanation {
+            line-height: 1.55;
+            color: #d7e1ee;
+            font-size: 14px;
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        .error {
+            color: #ff8e8e;
+            white-space: pre-wrap;
+        }
+
+        .section-gap {
+            margin-top: 16px;
+        }
+
+        button {
+            border: 0;
+            border-radius: 9px;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #stop-button {
+            background: var(--danger);
+            color: white;
+        }
+
+        @media (max-width: 950px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 580px) {
+            .page {
+                padding: 10px;
+            }
+
+            header {
+                padding: 15px;
+            }
+
+            header h1 {
+                font-size: 19px;
+            }
+
+            .cards {
+                grid-template-columns: 1fr;
+            }
+
+            #risk-class {
+                font-size: 26px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<header>
+    <h1>Live Multimodal Infant Risk Dashboard</h1>
+    <p>
+        YOLO + MediaPipe + LSTM + AST + XGBoost + SHAP
+    </p>
+</header>
+
+<main class="page">
+    <div class="status-bar">
+        <div class="status-pill">
+            System:
+            <strong id="system-status">Starting</strong>
+        </div>
+
+        <div class="status-pill">
+            Camera:
+            <strong id="camera-status">Waiting</strong>
+        </div>
+
+        <div class="status-pill">
+            Microphone:
+            <strong id="audio-status">Waiting</strong>
+        </div>
+
+        <div class="status-pill">
+            Sample:
+            <strong id="sample-id">0</strong>
+        </div>
+    </div>
+
+    <div class="layout">
+        <section>
+            <div class="panel">
+                <div class="panel-title">
+                    Live Camera
+                </div>
+
+                <div class="video-wrapper">
+                    <img
+                        id="live-video"
+                        src="/video_feed"
+                        alt="Live camera stream"
+                    >
+                </div>
+            </div>
+
+            <div class="panel section-gap">
+                <div class="panel-title">
+                    Live Multimodal Results
+                </div>
+
+                <div class="panel-body">
+                    <div class="cards">
+                        <div class="card">
+                            <div class="label">
+                                YOLO detection
+                            </div>
+                            <div
+                                id="detected-class"
+                                class="value"
+                            >
+                                Waiting
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="label">
+                                Baby / empty seat
+                            </div>
+                            <div
+                                id="object-counts"
+                                class="value small-value"
+                            >
+                                Waiting
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="label">
+                                MediaPipe movement
+                            </div>
+                            <div
+                                id="movement-score"
+                                class="value"
+                            >
+                                0.000000
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="label">
+                                LSTM behavior
+                            </div>
+                            <div
+                                id="behavior"
+                                class="value"
+                            >
+                                Waiting
+                            </div>
+                            <div
+                                id="behavior-confidence"
+                                class="muted"
+                            >
+                                0%
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="label">
+                                AST audio
+                            </div>
+                            <div
+                                id="audio-class"
+                                class="value"
+                            >
+                                Waiting
+                            </div>
+                            <div
+                                id="audio-confidence"
+                                class="muted"
+                            >
+                                0%
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="label">
+                                Audio probabilities
+                            </div>
+                            <div
+                                id="audio-probabilities"
+                                class="value small-value"
+                            >
+                                Waiting
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <aside>
+            <div class="panel">
+                <div class="panel-title">
+                    XGBoost Risk Prediction
+                </div>
+
+                <div class="panel-body">
+                    <div class="risk-box">
+                        <div id="risk-class">
+                            Waiting
+                        </div>
+                        <div id="risk-confidence">
+                            Confidence: 0%
+                        </div>
+                    </div>
+
+                    <div id="risk-probabilities"></div>
+                </div>
+            </div>
+
+            <div class="panel section-gap">
+                <div class="panel-title">
+                    Live SHAP Explanation
+                </div>
+
+                <div class="panel-body">
+                    <div
+                        id="risk-explanation"
+                        class="explanation"
+                    >
+                        Waiting for live prediction.
+                    </div>
+
+                    <div
+                        id="shap-features"
+                        class="section-gap"
+                    ></div>
+                </div>
+            </div>
+
+            <div class="panel section-gap">
+                <div class="panel-title">
+                    System Message
+                </div>
+
+                <div class="panel-body">
+                    <div id="message">
+                        Starting system.
+                    </div>
+
+                    <div
+                        id="error-message"
+                        class="error section-gap"
+                    ></div>
+
+                    <button
+                        id="stop-button"
+                        type="button"
+                        class="section-gap"
+                    >
+                        Stop Monitoring
+                    </button>
+                </div>
+            </div>
+        </aside>
+    </div>
+</main>
+
+<script>
+    function percent(value) {
+        const number = Number(value || 0);
+        return `${(number * 100).toFixed(1)}%`;
+    }
+
+    function setText(id, value) {
+        const element = document.getElementById(id);
+
+        if (element) {
+            element.textContent = value;
+        }
+    }
+
+    function riskColor(riskClass) {
+        const value = String(riskClass || "").toLowerCase();
+
+        if (value.includes("high")) {
+            return "#ef5b5b";
+        }
+
+        if (value.includes("medium")) {
+            return "#f0ad4e";
+        }
+
+        if (value.includes("low")) {
+            return "#25c281";
+        }
+
+        if (value.includes("no baby")) {
+            return "#4ea1ff";
+        }
+
+        return "#f4f7fb";
+    }
+
+    function renderRiskProbabilities(probabilities) {
+        const container = document.getElementById(
+            "risk-probabilities"
+        );
+
+        container.innerHTML = "";
+
+        const entries = Object.entries(
+            probabilities || {}
+        );
+
+        if (entries.length === 0) {
+            container.textContent =
+                "Waiting for probabilities.";
+            return;
+        }
+
+        entries
+            .sort((a, b) => b[1] - a[1])
+            .forEach(([label, value]) => {
+                const row = document.createElement("div");
+                row.className = "probability-row";
+
+                row.innerHTML = `
+                    <div class="row-head">
+                        <span>${label}</span>
+                        <strong>${percent(value)}</strong>
+                    </div>
+                    <div class="bar">
+                        <div
+                            class="bar-fill"
+                            style="width:${Math.min(
+                                100,
+                                Number(value) * 100
+                            )}%"
+                        ></div>
+                    </div>
+                `;
+
+                container.appendChild(row);
+            });
+    }
+
+    function renderShapFeatures(features) {
+        const container = document.getElementById(
+            "shap-features"
+        );
+
+        container.innerHTML = "";
+
+        if (!Array.isArray(features) || features.length === 0) {
+            container.textContent =
+                "Waiting for SHAP feature contributions.";
+            return;
+        }
+
+        const maxValue = Math.max(
+            ...features.map(
+                item => Math.abs(
+                    Number(item.shap_value || 0)
+                )
+            ),
+            0.000001
+        );
+
+        features.forEach(item => {
+            const shapValue = Number(
+                item.shap_value || 0
+            );
+
+            const width = Math.min(
+                100,
+                Math.abs(shapValue) / maxValue * 100
+            );
+
+            const row = document.createElement("div");
+            row.className = "shap-row";
+
+            const barClass = (
+                shapValue >= 0
+                    ? "shap-positive"
+                    : "shap-negative"
+            );
+
+            row.innerHTML = `
+                <div class="row-head">
+                    <span>
+                        ${item.feature}
+                        <span class="muted">
+                            (${item.modality})
+                        </span>
+                    </span>
+                    <strong>
+                        ${shapValue >= 0 ? "+" : ""}
+                        ${shapValue.toFixed(4)}
+                    </strong>
+                </div>
+
+                <div class="bar">
+                    <div
+                        class="bar-fill ${barClass}"
+                        style="width:${width}%"
+                    ></div>
+                </div>
+
+                <div class="muted"
+                     style="font-size:12px;margin-top:4px;">
+                    Value: ${item.feature_value} —
+                    ${item.direction}
+                </div>
+            `;
+
+            container.appendChild(row);
+        });
+    }
+
+    async function updateDashboard() {
+        try {
+            const response = await fetch(
+                "/api/live_data",
+                {
+                    cache: "no-store"
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(
+                    `HTTP ${response.status}`
+                );
+            }
+
+            const data = await response.json();
+
+            setText(
+                "system-status",
+                data.system_ready
+                    ? "Running"
+                    : "Loading"
+            );
+
+            setText(
+                "camera-status",
+                data.camera_ok
+                    ? "Connected"
+                    : "Waiting"
+            );
+
+            setText(
+                "audio-status",
+                data.audio_ok
+                    ? "Connected"
+                    : "Waiting"
+            );
+
+            setText(
+                "sample-id",
+                data.sample_id || 0
+            );
+
+            setText(
+                "detected-class",
+                data.detected_class || "None"
+            );
+
+            setText(
+                "object-counts",
+                `Baby: ${data.baby_count || 0} | ` +
+                `Empty seat: ${data.empty_seat_count || 0}`
+            );
+
+            setText(
+                "movement-score",
+                Number(
+                    data.movement_score || 0
+                ).toFixed(6)
+            );
+
+            setText(
+                "behavior",
+                data.lstm_behavior || "Waiting"
+            );
+
+            setText(
+                "behavior-confidence",
+                percent(
+                    data.behavior_confidence
+                )
+            );
+
+            setText(
+                "audio-class",
+                data.audio_class || "Waiting"
+            );
+
+            setText(
+                "audio-confidence",
+                percent(
+                    data.audio_confidence
+                )
+            );
+
+            setText(
+                "audio-probabilities",
+                `Cry: ${percent(data.cry_probability)} | ` +
+                `Noise: ${percent(data.noise_probability)} | ` +
+                `Normal: ${percent(data.normal_probability)}`
+            );
+
+            setText(
+                "risk-class",
+                data.risk_class || "Waiting"
+            );
+
+            const riskElement = document.getElementById(
+                "risk-class"
+            );
+
+            riskElement.style.color = riskColor(
+                data.risk_class
+            );
+
+            setText(
+                "risk-confidence",
+                `Confidence: ${percent(
+                    data.risk_confidence
+                )}`
+            );
+
+            setText(
+                "risk-explanation",
+                data.risk_explanation ||
+                "Waiting for live prediction."
+            );
+
+            setText(
+                "message",
+                data.message || ""
+            );
+
+            setText(
+                "error-message",
+                data.error || ""
+            );
+
+            renderRiskProbabilities(
+                data.risk_probabilities
+            );
+
+            renderShapFeatures(
+                data.shap_features
+            );
+
+        } catch (error) {
+            setText(
+                "system-status",
+                "Disconnected"
+            );
+
+            setText(
+                "error-message",
+                `Dashboard update error: ${error}`
+            );
+        }
+    }
+
+    document
+        .getElementById("stop-button")
+        .addEventListener(
+            "click",
+            async () => {
+                const confirmed = window.confirm(
+                    "Stop live monitoring?"
+                );
+
+                if (!confirmed) {
+                    return;
+                }
+
+                try {
+                    await fetch(
+                        "/api/stop",
+                        {
+                            method: "POST"
+                        }
+                    );
+
+                    setText(
+                        "message",
+                        "Stop request sent."
+                    );
+
+                } catch (error) {
+                    setText(
+                        "error-message",
+                        `Stop request failed: ${error}`
+                    );
+                }
+            }
+        );
+
+    updateDashboard();
+
+    setInterval(
+        updateDashboard,
+        1000
+    );
+</script>
+</body>
+</html>
