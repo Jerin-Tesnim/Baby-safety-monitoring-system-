@@ -1,0 +1,9 @@
+              precision    recall  f1-score   support
+
+    Baby_Cry     1.0000    1.0000    1.0000        10
+       Noise     1.0000    1.0000    1.0000        10
+      Normal     1.0000    1.0000    1.0000        11
+
+    accuracy                         1.0000        31
+   macro avg     1.0000    1.0000    1.0000        31
+weighted avg     1.0000    1.0000    1.0000        31

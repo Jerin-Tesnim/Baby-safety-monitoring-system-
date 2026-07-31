@@ -1,0 +1,7 @@
+,precision,recall,f1-score,support
+Baby_Cry,1.0,1.0,1.0,10.0
+Noise,1.0,1.0,1.0,10.0
+Normal,1.0,1.0,1.0,11.0
+accuracy,1.0,1.0,1.0,1.0
+macro avg,1.0,1.0,1.0,31.0
+weighted avg,1.0,1.0,1.0,31.0
