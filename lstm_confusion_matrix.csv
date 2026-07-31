@@ -1,0 +1,6 @@
+,Inactive,Low_Movement,Normal_Movement,Restless_Movement,Sudden_Movement
+Inactive,86,11,20,1,0
+Low_Movement,5,21,24,0,0
+Normal_Movement,14,4,332,11,7
+Restless_Movement,0,0,6,11,4
+Sudden_Movement,2,1,4,5,31
