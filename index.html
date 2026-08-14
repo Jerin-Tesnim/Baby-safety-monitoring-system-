@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Live Multimodal Infant Risk</title>
+<style>
+:root{--bg:#071426;--card:#10223a;--card2:#152a47;--line:#2c4260;--text:#f7f9fc;--muted:#aebbd1;--blue:#5da8ff;--green:#39d5a0;--red:#ff6672;--orange:#ffbd59}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}body{min-height:100vh}.page{width:min(100%,760px);margin:auto;padding:8px 10px 12px}.top{height:42px;display:flex;align-items:center;justify-content:space-between}.title{font-size:20px;font-weight:800;letter-spacing:.2px}.live{padding:6px 12px;border:1px solid var(--line);border-radius:999px;color:var(--green);font-weight:800;font-size:13px}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden}.video-card{height:clamp(210px,34vh,320px);margin-top:3px}.video{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#000}.video img{width:100%;height:100%;object-fit:contain;display:block}.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:8px 0}.box{min-width:0;background:var(--card2);border:1px solid var(--line);border-radius:15px;padding:9px 10px;height:100px}.label{font-size:11px;font-weight:900;color:var(--muted);letter-spacing:.4px}.value{font-size:18px;font-weight:900;margin-top:8px;line-height:1.05;overflow-wrap:anywhere}.conf{font-size:13px;font-weight:700;color:var(--muted);margin-top:6px}.graph{padding:12px 14px 11px}.graph-title{font-size:20px;font-weight:900;line-height:1.15}.graph-sub{font-size:12px;color:var(--muted);font-weight:650;margin:3px 0 8px}.bars{display:grid;gap:7px}.row{display:grid;grid-template-columns:160px 1fr 62px;gap:9px;align-items:center}.name{font-size:14px;font-weight:850;line-height:1.08}.tag{font-size:10px;color:var(--muted);font-weight:650;margin-top:2px}.track{height:20px;border-radius:8px;background:#071426;overflow:hidden;position:relative}.fill{height:100%;min-width:2px;border-radius:8px;transition:width .35s ease}.support{background:linear-gradient(90deg,#ff8992,#ff5264)}.oppose{background:linear-gradient(90deg,#39d5a0,#76e6c1)}.score{text-align:right;font-size:14px;font-weight:900}.fusion{margin-top:9px;padding:8px 10px;background:#0a192d;border-left:4px solid var(--blue);border-radius:10px}.fusion-name{font-size:15px;font-weight:900}.fusion-formula{font-size:12px;color:var(--muted);font-weight:700;margin-top:2px}.reason{margin-top:7px;font-size:12px;line-height:1.35;font-weight:650}.error{display:none;margin-top:6px;color:#ff9aa3;font-size:11px}.risk-high{color:var(--red)}.risk-medium{color:var(--orange)}.risk-low{color:var(--green)}.risk-none{color:var(--blue)}
+@media(max-width:560px){.page{padding:6px}.top{height:38px}.title{font-size:17px}.video-card{height:30vh;min-height:205px;max-height:285px}.summary{gap:5px;margin:6px 0}.box{height:88px;padding:7px}.label{font-size:9px}.value{font-size:15px;margin-top:7px}.conf{font-size:11px;margin-top:5px}.graph{padding:10px}.graph-title{font-size:17px}.graph-sub{font-size:10px;margin-bottom:6px}.row{grid-template-columns:125px 1fr 53px;gap:6px}.name{font-size:12px}.tag{font-size:9px}.track{height:17px}.score{font-size:12px}.fusion{margin-top:7px;padding:7px 9px}.fusion-name{font-size:13px}.fusion-formula,.reason{font-size:10px}}
+@media(max-width:390px){.summary{grid-template-columns:repeat(2,1fr)}.box{height:75px}.video-card{height:27vh}.row{grid-template-columns:112px 1fr 48px}}
+</style>
+</head>
+<body>
+<main class="page">
+  <header class="top">
+    <div class="title">Live Multimodal Infant Risk</div>
+    <div class="live" id="liveText">Starting</div>
+  </header>
+
+  <section class="card video-card">
+    <div class="video"><img src="/video_feed?stream=live" alt="Live camera stream"></div>
+  </section>
+
+  <section class="summary">
+    <div class="box"><div class="label">YOLO</div><div class="value" id="cameraResult">Waiting</div><div class="conf" id="cameraConfidence">0.0%</div></div>
+    <div class="box"><div class="label">BEHAVIOUR</div><div class="value" id="behaviorResult">Waiting</div><div class="conf" id="behaviorConfidence">0.0%</div></div>
+    <div class="box"><div class="label">AST AUDIO</div><div class="value" id="soundResult">Waiting</div><div class="conf" id="soundConfidence">0.0%</div></div>
+    <div class="box"><div class="label">RISK</div><div class="value" id="riskResult">Waiting</div><div class="conf" id="riskConfidence">0.0%</div></div>
+  </section>
+
+  <section class="card graph">
+    <div class="graph-title" id="graphTitle">Why the AI Made This Prediction</div>
+    <div class="graph-sub">The three bars show how the current YOLO, behaviour and AST outputs influenced the selected risk level.</div>
+    <div id="bars" class="bars"><div class="tag">Waiting for SHAP values.</div></div>
+    <div class="fusion">
+      <div class="fusion-name" id="fusionStatus">Fusion condition: Waiting</div>
+      <div class="fusion-formula" id="fusionFormula">Waiting for live signals</div>
+    </div>
+    <div id="reason" class="reason">Waiting for live camera and audio results.</div>
+    <div id="error" class="error"></div>
+  </section>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const pct=v=>`${(Number(v||0)*100).toFixed(1)}%`;
+const clean=s=>String(s??'Waiting').replaceAll('_',' ');
+function riskClass(s){s=clean(s).toLowerCase();if(s.includes('high'))return'risk-high';if(s.includes('medium'))return'risk-medium';if(s.includes('low'))return'risk-low';if(s.includes('no baby'))return'risk-none';return''}
+function draw(items){
+  const box=$('bars');box.innerHTML='';
+  const list=Array.isArray(items)?items.slice(0,3):[];
+  if(!list.length){box.innerHTML='<div class="tag">Waiting for SHAP values.</div>';return;}
+  const max=Math.max(...list.map(x=>Math.abs(Number(x.shap_value||0))),1e-9);
+  for(const item of list){
+    const v=Number(item.shap_value||0),w=Math.max(2,Math.abs(v)/max*100),support=v>=0;
+    const row=document.createElement('div');row.className='row';
+    row.innerHTML=`<div class="name">${clean(item.feature)}<div class="tag">${support?'Supports this risk level':'Pushes toward another risk level'}</div></div><div class="track"><div class="fill ${support?'support':'oppose'}" style="width:${w}%"></div></div><div class="score">${v>=0?'+':''}${v.toFixed(3)}</div>`;
+    box.appendChild(row);
+  }
+}
+async function refresh(){
+  try{
+    const response=await fetch(`/api/live_data?t=${Date.now()}`,{cache:'no-store'});
+    if(!response.ok)throw new Error(`HTTP ${response.status}`);
+    const d=await response.json();
+    $('liveText').textContent=d.system_ready?'● Live':'Loading';
+    $('cameraResult').textContent=clean(d.detected_class==='None'?'No Detection':d.detected_class);
+    $('cameraConfidence').textContent=pct(d.yolo_confidence);
+    $('behaviorResult').textContent=clean(d.lstm_behavior);
+    $('behaviorConfidence').textContent=pct(d.behavior_confidence);
+    $('soundResult').textContent=clean(d.audio_class);
+    $('soundConfidence').textContent=pct(d.audio_confidence);
+    $('riskResult').textContent=clean(d.risk_class);
+    $('riskResult').className=`value ${riskClass(d.risk_class)}`;
+    $('riskConfidence').textContent=pct(d.risk_confidence);
+    $('graphTitle').textContent=`Why the AI Predicted ${clean(d.risk_class)}`;
+    $('fusionStatus').textContent=`Fusion condition: ${clean(d.fusion_status)}`;
+    $('fusionFormula').textContent=clean(d.fusion_formula);
+    $('reason').textContent=d.risk_explanation||'Waiting for live explanation.';
+    draw(d.shap_features);
+    $('error').style.display=d.error?'block':'none';$('error').textContent=d.error||'';
+  }catch(error){$('liveText').textContent='Disconnected';$('error').style.display='block';$('error').textContent=String(error)}
+  finally{window.setTimeout(refresh,350);}
+}
+refresh();
+</script>
+</body>
+</html>
